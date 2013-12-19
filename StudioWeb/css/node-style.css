@@ -1,0 +1,35 @@
+.node {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+}
+.node-handles {
+    width: 0;
+    height: 0;
+    border: 50px solid transparent;
+    border-bottom-color: #7dbdbc;
+    position: relative;
+    top: -50px;
+}
+.node-handles:before {
+    content: "";
+    position: absolute;
+    left: -50px;
+    top: 50px;
+    width: 0;
+    height: 0;
+    border: 50px solid transparent;
+    border-top-color: #7dbdbc;    
+}
+.node-content {
+    content: "";
+    position: absolute;
+    left: -34px;
+    top: 15px;
+    width: 64px;
+    height: 64px;
+    background: white;
+    outline: 4px solid white;
+    border: 2px dotted blue;
+    border-radius: 5px;
+}
