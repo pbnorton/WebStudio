@@ -1,1 +1,2 @@
-var data = {"nodes" : []}
+var data = {"nodes" : [],
+			"paths" : []}
