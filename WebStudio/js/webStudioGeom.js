@@ -18,7 +18,7 @@ var pNodeGeom = (function() {
 			var node = d3.select(this);
 			
 			if(WebStudio.isPath === true) {
-				pNodeGeom.nodeSource = this.id;
+				pNodeGeom.nodeSource = this;
 			}
 			else {
 				d.origin[0] += d3.event.dx;
@@ -26,12 +26,9 @@ var pNodeGeom = (function() {
 				node.attr("transform", function(d) {
 					return "translate(" + [d.origin[0], d.origin[1]] + ")";
 				});
-				//console.log("update");
 				
-				//console.log(this.data()[0].id);
-				//node.data()[0].id
 				node.data()[0].setOrigin(node.data()[0].getOrigin());
-				//node.data()[0].updatePaths();
+				node.data()[0].updatePaths(node.data()[0].paths);
 			}
 		});	
 			
@@ -40,7 +37,7 @@ var pNodeGeom = (function() {
 	}
 
 	var isNextNode = function(node) {
-		pNodeGeom.nodeTarget = node.id;
+		pNodeGeom.nodeTarget = node;
 	}
 	
 	var createPath = function(d) {
@@ -62,14 +59,14 @@ var pNodeGeom = (function() {
 	
 		node.append("polygon")
 			.data([pNode.origin])
-			.attr("id", "node-handles")
+			.attr("id", "node" + this.id + "-handles")
 			.attr("points", "50,0 100,50 50,100, 0,50")
 			.attr("stroke", "black")
 			.attr("fill", "black")
 			.on("mousedown", createPath);
 			
 		node.append("rect")
-			.attr("id", "node-border")
+			.attr("id", "node" + this.id + "-border")
 			.attr("x", "10")
 			.attr("y", "10")
 			.attr("width", "80")
@@ -102,27 +99,23 @@ var pPathGeom = (function() {
 	var id;
 	var line;			
 
+
 				
-	var createPath = function(d, pPath, whiteboard) {
-		var pPath = new PPath(pPath.id);
-		
+	var createPath = function(d, whiteboard) {
 		WebStudio.isPath = true;
 		
-		data.paths.push(pPath);
-		startPath(d, pPath); 
+		startPath(d); 
 	}
 	
-	function startPath(d, path) {
+	function startPath(d) {
 		var vis = d3.select(WebStudio.whiteboard.node());
 		var m = d3.mouse(vis.node());
 		
-		path.p1 = d;
-		
 		line = vis.append("line")
-				.data([path])
+				.data([d])
 				.attr("id", "ghost-line")
-				.attr("x1", function(d) { return d.p1[0] + 50; })
-				.attr("y1", function(d) { return d.p1[1] + 50; })
+				.attr("x1", function(d) { return d[0] + 50; })
+				.attr("y1", function(d) { return d[1] + 50; })
 				.attr("x2", m[0])
 				.attr("y2", m[1])
 				.attr("stroke", "aqua")
@@ -146,31 +139,43 @@ var pPathGeom = (function() {
 		var m = d3.mouse(this);
 		
 		WebStudio.isPath = false;
-		if(pNodeGeom.nodeTarget) {
-			var sourceX = d3.select("#" + pNodeGeom.nodeSource).data()[0].x;
-			var sourceY = d3.select("#" + pNodeGeom.nodeSource).data()[0].y;
-			var targetX = d3.select("#" + pNodeGeom.nodeTarget).data()[0].x;
-			var targetY = d3.select("#" + pNodeGeom.nodeTarget).data()[0].y;
-			
-			var source = d3.select("#" + pNodeGeom.nodeSource + "-content");
-			var target = d3.select("#" + pNodeGeom.nodeTarget.id + "-content");
-			
-			var diagonal = d3.svg.diagonal()
-				.source({x: sourceX, y: sourceY})
-				.target({x: targetX, y: targetY});
 		
+		/* make sure we have a target and that we're not drawing a line from a node to itself */
+		if(pNodeGeom.nodeTarget && (pNodeGeom.nodeSource !== pNodeGeom.nodeTarget)) {			
+			var source = {x: d3.select("#" + pNodeGeom.nodeSource.id).data()[0].x, y: d3.select("#" + pNodeGeom.nodeSource.id).data()[0].y};
+			var target = {x: d3.select("#" + pNodeGeom.nodeTarget.id).data()[0].x, y: d3.select("#" + pNodeGeom.nodeTarget.id).data()[0].y};
+		
+			var diagonal = d3.svg.diagonal()
+				.source(source)
+				.target(target);
+		
+			var pathID = "path" + WebStudio.pathCount;
+			
 			WebStudio.whiteboard.append("path")
-				.attr("id", "path" + WebStudio.pathCount)
+				.attr("id", pathID)
 				.attr("fill", "none")
-				.attr("stroke", "black")
+				.attr("stroke", "aqua")
 				.attr("d", diagonal);
 				
-			d3.select("#" + pNodeGeom.nodeSource).data()[0].addPathSource("path" + WebStudio.pathCount);
-			d3.select("#" + pNodeGeom.nodeTarget).data()[0].addPathTarget("path" + WebStudio.pathCount);
+			/* save the path and add its source and target node data to the path data */
+			var pPath = new PPath(pathID);
+			
+			pPath.setSource(d3.select("#" + pNodeGeom.nodeSource.id));
+			pPath.setTarget(d3.select("#" + pNodeGeom.nodeTarget.id));
+			data.paths.push(pPath);
+			
+			/* add the path to the appropriate node data */
+			d3.select("#" + pNodeGeom.nodeSource.id).data()[0].setTarget(pNodeGeom.nodeTarget);
+			d3.select("#" + pNodeGeom.nodeSource.id).data()[0].addPath(pPath);
+			
+			d3.select("#" + pNodeGeom.nodeTarget.id).data()[0].setSource(pNodeGeom.nodeSource);
+			d3.select("#" + pNodeGeom.nodeTarget.id).data()[0].addPath(pPath);
 		}
-		d3.selectAll("#ghost-line").remove();
 		
-		//console.log(WebStudio.pathCount);
+		pNodeGeom.nodeSource = null;
+		pNodeGeom.nodeTarget = null;
+		
+		d3.selectAll("#ghost-line").remove();
 		
 		d3.select(WebStudio.whiteboard.node()).on("mousemove", null);
 		d3.select(WebStudio.whiteboard.node()).on("mouseup", null);

@@ -18,10 +18,7 @@ var WebStudio = (function() {
 	};
 	
 	var addPath = function(d) {
-		var pPath = new PPath(this.pathCount);
-		data.paths.push(pPath);
-		
-		pPathGeom.createPath(d, pPath, whiteboard);
+		pPathGeom.createPath(d, whiteboard);
 		
 		this.pathCount++;
 	}
