@@ -8,8 +8,8 @@ var WebStudio = (function() {
 	var pathCount = 0;
 	var isPath = false;
 	
-	var addNode = function() {
-		var pNode = new PNode(this.nodeCount);
+	var addNode = function(x, y) {
+		var pNode = new PNode(this.nodeCount, x, y);
 		data.nodes.push(pNode);
 		
 		pNodeGeom.createNode(pNode, whiteboard);

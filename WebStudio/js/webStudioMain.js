@@ -1,27 +1,17 @@
 $(document).ready(function() {
 	var whiteboard = WebStudio.whiteboard;
 	
-	WebStudio.addNode();
-	data.nodes[0].setOrigin([200, 200]);
+	$(".btn-slide").on("click", function() {
+		$(".panel").animate({
+			left: parseInt($(".panel").css("left"), 10) == 0 ? -$(".panel").outerWidth() : 0
+			//left: "-250px"
+		}, "fast");
+	});
 	
-	WebStudio.addNode();
-	data.nodes[1].setOrigin([450, 200]);
-	
-	WebStudio.addNode();
-	data.nodes[2].setOrigin([700, 100]);
-	
-	WebStudio.addNode();
-	data.nodes[3].setOrigin([700, 300]);
-		
-/*
-	var diagonal = d3.svg.diagonal()
-		.source({x: data.nodes[0].x, y: data.nodes[0].y})
-		.target({x: data.nodes[1].x, y: data.nodes[1].y});
-	
-	whiteboard.append("path")
-		.attr("fill", "none")
-		.attr("stroke", "black")
-		.attr("d", diagonal);
-*/
-})
+	$(".icon.draggable").draggable();
+	$(".icon.draggable").on("mouseup", function(e) { 
+		WebStudio.addNode($(this).offset().left, $(this).offset().top);
+		$(this).css({"left": "0", "top": "0"});
+	});
+});
 

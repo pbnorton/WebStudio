@@ -155,6 +155,7 @@ var pPathGeom = (function() {
 				.attr("id", pathID)
 				.attr("fill", "none")
 				.attr("stroke", "aqua")
+				.attr("stroke-width", "2")
 				.attr("d", diagonal);
 				
 			/* save the path and add its source and target node data to the path data */
