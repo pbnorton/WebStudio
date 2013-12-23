@@ -1,6 +1,6 @@
-function PNode(id, _x, _y) {
-	this.id = id;
-	this.type = "ghost";
+function PNode(_id, _type, _x, _y) {
+	this.id = _id;
+	this.type = _type;
 	this.origin = [_x, _y];
 	this.width = 100;
 	this.height = 100;
@@ -40,7 +40,6 @@ PNode.prototype.setTarget = function(pNode) {
 PNode.prototype.addPath = function(path) { this.paths.push(path); }
 
 PNode.prototype.updatePaths = function(paths) {	
-	
 	for(var i in paths)
 		paths[i].updatePath();
 }

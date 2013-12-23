@@ -3,33 +3,41 @@
     height: 100px;
     overflow: hidden;
 }
-.node-handles {
-    width: 0;
-    height: 0;
-    border: 50px solid transparent;
-    border-bottom-color: black;
-    position: relative;
-    top: -50px;
-}
-.node-handles:before {
-    content: "";
-    position: absolute;
-    left: -50px;
-    top: 50px;
-    width: 0;
-    height: 0;
-    border: 50px solid transparent;
-    border-top-color: black;    
-}
+
 .node-content {
-    content: "";
     position: absolute;
-    left: -34px;
+    left: 15px;
     top: 15px;
-    width: 64px;
-    height: 64px;
+    width: 66px;
+    height: 66px;
     background: white;
-    outline: 4px solid white;
-    border: 2px dotted aqua;
+    border: 2px dotted black;
     border-radius: 20px;
+}
+
+.icon .draggable .node-content {
+	opacity: .5;
+}
+
+#twitter .node-content{
+	content: url("../img/Twitter_logo_blue.png");
+	border: none;
+	border-radius: 0;
+	width: 70px;
+	height: 70px;
+}
+
+#decision .node-content {
+	border: 2px solid black;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 5px;
+	border-top-left-radius: 20px;
+	background: grey;
+}
+
+#end .node-content {
+	border: 2px solid black;
+	border-radius: 32px;
+	background: orange;
 }

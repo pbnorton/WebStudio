@@ -1,12 +1,16 @@
 /************************************************************************************
-/*	d3.js interface and event handlers for the node icons and connecting paths
+/*	d3.js interface, drawing, and event handlers for the node icons and connecting paths
 /************************************************************************************/
 
 var pNodeGeom = (function() {
 	var id;
 	var nodeSource;
 	var nodeTarget;
+	
+	// event flags
+	var isDragging = false;
 
+/* node event handling ***************************************************************/
 	var updateNodePos = function(pNode) {
 		d3.select("#node" + pNode.getID())
 			.data([pNode])
@@ -33,7 +37,9 @@ var pNodeGeom = (function() {
 		});	
 			
 	var info = function(d) {
-		//console.log(d);
+		if(d3.event.defaultPrevented) 
+			return;
+		alert(d3.select("#" + this.id).data()[0].type + " node");
 	}
 
 	var isNextNode = function(node) {
@@ -44,36 +50,57 @@ var pNodeGeom = (function() {
 		WebStudio.addPath(d);
 	}
 	
-	var createNode = function(pNode, whiteboard) {
+	
+/* node rendering **********************************************************************/
+	
+	/**************************************************************************************************
+	/* create the group and handles for a node. Specific node type will be set later in the function
+	/* based on the "id" of the DOM element 													      */
+	var createNode = function(pNode, nodeGroup) {
 		this.id = pNode.getID();
-		
-		var node = whiteboard.append("g")
-			//.data([pNode.getOrigin()])
+	
+		var node = nodeGroup.append("g")
 			.data([pNode])
+			.attr("class", "pNode")
 			.attr("id", "node" + this.id)
 			.attr("transform", function(d) { return "translate(" + d.getOrigin()[0] + "," + d.getOrigin()[1] + ")"; } )
 			.on("mousedown", function() { nodeTarget = this.id; })
 			.on("mouseover", function() { if(WebStudio.isPath === true){isNextNode(this);} } )
 			.on("click", info)
 			.call(drag);
+			
 	
-		node.append("polygon")
+		node.append("rect")
+			.attr("x", "0")
+			.attr("y", "0")
+			.attr("width", "100")
+			.attr("height", "100")
+			.attr("stroke", "black")
+			.attr("stroke-dasharray", "10, 10")
+			.attr("fill", "none")
+			.attr("visibility", "hidden");
+	
+		// triangular handles surrounding the node
+		node.append("path")
 			.data([pNode.origin])
 			.attr("id", "node" + this.id + "-handles")
-			.attr("points", "50,0 100,50 50,100, 0,50")
-			.attr("stroke", "black")
+			.attr("d", "M 0 50 L 10 40 L 10 60 L 0 50 M 50 0 L 60 10 L 40 10 L 50 0 M 100 50 L 90 60 L 90 40 L 100 50 M 50 100 L 40 90 L 60 90 L 50 100")
 			.attr("fill", "black")
 			.on("mousedown", createPath);
 			
-		node.append("rect")
-			.attr("id", "node" + this.id + "-border")
-			.attr("x", "10")
-			.attr("y", "10")
-			.attr("width", "80")
-			.attr("height", "80")
-			.attr("stroke", "white")
-			.attr("fill", "white");
-			
+		
+		if(node.data()[0].type === "ghost")
+			ghostNode(node);
+		else if(node.data()[0].type === "twitter")
+			twitterNode(node);
+		else if(node.data()[0].type === "decision")
+			decisionNode(node);
+		else if(node.data()[0].type === "end")
+			endNode(node);
+		
+	}
+	
+	var ghostNode = function (node) {
 		node.append("rect")
 			.attr("id", "node" + this.id + "-content")
 			.attr("x", "15")
@@ -82,10 +109,42 @@ var pNodeGeom = (function() {
 			.attr("height", "70")
 			.attr("rx", "20")
 			.attr("ry", "20")
-			.attr("stroke", "aqua")
+			.attr("stroke", "black")
 			.attr("stroke-dasharray", "5,5")
 			.attr("fill", "white");
 	}
+
+	var twitterNode = function(node) {
+		node.append("image")
+			.attr("xlink:href", "img/Twitter_logo_blue.png")
+			.attr("x", "15")
+			.attr("y", "15")
+			.attr("width", "70")
+			.attr("height", "70");
+	}
+	
+	var decisionNode = function(node) {
+		node.append("rect")
+			.attr("x", "15")
+			.attr("y", "15")
+			.attr("width", "66")
+			.attr("height", "66")
+			.attr("stroke", "black")
+			.attr("stroke-width", "2")
+			.attr("rx", "20")
+			.attr("ry", "5")
+			.attr("fill", "grey");
+	}
+	
+	var endNode = function(node) {
+		node.append("circle")
+			.attr("cx", "50")
+			.attr("cy", "50")
+			.attr("r", "35")
+			.attr("stroke", "black")
+			.attr("fill", "orange");
+	}
+
 	
 	return { nodeSource: nodeSource,
 			 nodeTarget: nodeTarget,
@@ -93,22 +152,22 @@ var pNodeGeom = (function() {
 			 createNode: createNode };
 })();
 
-/************************************************************************************/
 
+/************************************************************************************
+/* Create and draw a path between two nodes
+/************************************************************************************/
 var pPathGeom = (function() {
 	var id;
 	var line;			
 
-
-				
 	var createPath = function(d, whiteboard) {
 		WebStudio.isPath = true;
 		
-		startPath(d); 
+		startPath(d, whiteboard); 
 	}
 	
 	function startPath(d) {
-		var vis = d3.select(WebStudio.whiteboard.node());
+		var vis = d3.select(whiteboard);
 		var m = d3.mouse(vis.node());
 		
 		line = vis.append("line")
@@ -150,13 +209,16 @@ var pPathGeom = (function() {
 				.target(target);
 		
 			var pathID = "path" + WebStudio.pathCount;
-			
-			WebStudio.whiteboard.append("path")
+
+			d3.select("#paths").append("path")
 				.attr("id", pathID)
 				.attr("fill", "none")
-				.attr("stroke", "aqua")
+				.attr("stroke", "black")
 				.attr("stroke-width", "2")
-				.attr("d", diagonal);
+				.attr("d", diagonal)
+				.on("click", function(d) { alert(pathID) } )
+				.on("mouseover", function(d) { d3.select(d3.event.target).attr("stroke-width", "5").attr("stroke", "red"); } )
+				.on("mouseout", function(d) { d3.select(d3.event.target).attr("stroke-width", "2").attr("stroke", "black"); } );
 				
 			/* save the path and add its source and target node data to the path data */
 			var pPath = new PPath(pathID);

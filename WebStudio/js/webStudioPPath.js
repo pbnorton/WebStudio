@@ -1,5 +1,5 @@
-function PPath(id) {
-	this.id = id;
+function PPath(_id) {
+	this.id = _id;
 	this.nodeSource;
 	this.nodeTarget;
 }
