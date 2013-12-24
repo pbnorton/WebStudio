@@ -18,6 +18,7 @@ var pNodeGeom = (function() {
 	};
 	
 	var drag = d3.behavior.drag()
+		.on("dragstart", function() { $(this).css("cursor", "move"); })
 		.on("drag", function(d) {
 			var node = d3.select(this);
 			
@@ -34,7 +35,8 @@ var pNodeGeom = (function() {
 				node.data()[0].setOrigin(node.data()[0].getOrigin());
 				node.data()[0].updatePaths(node.data()[0].paths);
 			}
-		});	
+		})
+		.on("dragend", function() { $(this).css("cursor", "default"); });
 			
 	var info = function(d) {
 		if(d3.event.defaultPrevented) 
@@ -65,10 +67,13 @@ var pNodeGeom = (function() {
 			.attr("id", "node" + this.id)
 			.attr("transform", function(d) { return "translate(" + d.getOrigin()[0] + "," + d.getOrigin()[1] + ")"; } )
 			.on("mousedown", function() { nodeTarget = this.id; })
-			.on("mouseover", function() { if(WebStudio.isPath === true){isNextNode(this);} } )
+			.on("mouseover", function() { 
+					if(WebStudio.isPath === true){isNextNode(this);} 
+					console.log(this);
+				})
+			.on("mouseup", function(d) { console.log(d) } )
 			.on("click", info)
 			.call(drag);
-			
 	
 		node.append("rect")
 			.attr("x", "0")
@@ -88,6 +93,9 @@ var pNodeGeom = (function() {
 			.attr("fill", "black")
 			.on("mousedown", createPath);
 			
+		//console.log($("#node" + pNode.getID()));
+		
+	
 		
 		if(node.data()[0].type === "ghost")
 			ghostNode(node);
@@ -170,6 +178,8 @@ var pPathGeom = (function() {
 		var vis = d3.select(whiteboard);
 		var m = d3.mouse(vis.node());
 		
+		//$("#"+this).css("cursor", "default");
+		
 		line = vis.append("line")
 				.data([d])
 				.attr("id", "ghost-line")
@@ -219,6 +229,8 @@ var pPathGeom = (function() {
 				.on("click", function(d) { alert(pathID) } )
 				.on("mouseover", function(d) { d3.select(d3.event.target).attr("stroke-width", "5").attr("stroke", "red"); } )
 				.on("mouseout", function(d) { d3.select(d3.event.target).attr("stroke-width", "2").attr("stroke", "black"); } );
+				
+			$("#" + pathID).on("mouseup", function() { console.log(pathID + " over"); });
 				
 			/* save the path and add its source and target node data to the path data */
 			var pPath = new PPath(pathID);

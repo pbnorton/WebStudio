@@ -1,7 +1,7 @@
-function PNode(_id, _type, _x, _y) {
-	this.id = _id;
-	this.type = _type;
-	this.origin = [_x, _y];
+function PNode(id, type, x, y) {
+	this.id = id;
+	this.type = type;
+	this.origin = [x, y];
 	this.width = 100;
 	this.height = 100;
 	this.x = this.origin[0] + (this.width / 2);

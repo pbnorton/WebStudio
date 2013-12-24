@@ -4,6 +4,14 @@
 
 var WebStudio = (function() {
 	var whiteboard = d3.select("body").append("svg").attr("id", "whiteboard");
+	$("#whiteboard").droppable( {
+		accept: ".icon",
+		drop: function(e, ui) {
+		//console.log(
+			addNode(WebStudio.moduleSource, ui.offset.left, ui.offset.top);
+			//addNode(WebStudio.moduleSource, event.pageX, ui.offset.top);
+		}
+	});
 	
 	var paths = whiteboard.append("g").attr("id", "paths");
 	var pathCount = 0;
@@ -14,6 +22,9 @@ var WebStudio = (function() {
 	// Event flags
 	var isPath = false;
 	
+	// store the ID of a module being dragged off the tool box
+	var moduleSource = "";
+	
 
 	paths.selectAll(".pPath")
 			.data(data.paths);	
@@ -23,12 +34,12 @@ var WebStudio = (function() {
 			
 	
 	var addNode = function(type, x, y) {
-		var pNode = new PNode(this.nodeCount, type, x, y);
+		var pNode = new PNode(nodeCount, type, x, y);
 		data.nodes.push(pNode);
 		
 		pNodeGeom.createNode(pNode, nodes);
 		
-		this.nodeCount++;				
+		nodeCount++;				
 	};
 	
 	var addPath = function(d) {

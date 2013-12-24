@@ -4,14 +4,17 @@ $(document).ready(function() {
 	$(".btn-slide").on("click", function() {
 		$(".panel").animate({
 			left: parseInt($(".panel").css("left"), 10) == 0 ? -$(".panel").outerWidth() : 0
-			//left: "-250px"
 		}, "fast");
 	});
 	
-	$(".icon.draggable").draggable();
-	$(".icon.draggable").on("mouseup", function(e) { 
-		WebStudio.addNode($(this).parent().attr("id"), $(this).offset().left, $(this).offset().top);
-		$(this).css({"left": "-6px", "top": "-6px"});
+	$(".icon.draggable").draggable({
+		cursor: "move",
+		opacity: .5,
+		revert: true,
+		revertDuration: 0,
+		start: function() {
+			WebStudio.moduleSource = $(this).parent().attr("id");
+		}
 	});
 });
 
