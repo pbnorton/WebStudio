@@ -18,7 +18,15 @@ var pNodeGeom = (function() {
 	};
 	
 	var drag = d3.behavior.drag()
-		.on("dragstart", function() { $(this).css("cursor", "move"); })
+		.on("dragstart", function(d) { 
+				$(this).css("cursor", "move"); 
+				d3.selectAll(".pNode").sort(function(a, b) {	// bring the current pNode to the top of the z-order
+					if(a.id != d.id)
+						return -1
+					else	
+						return 1;
+				});
+			})
 		.on("drag", function(d) {
 			var node = d3.select(this);
 			
@@ -36,14 +44,11 @@ var pNodeGeom = (function() {
 				node.data()[0].updatePaths(node.data()[0].paths);
 			}
 		})
-		.on("dragend", function() { $(this).css("cursor", "default"); });
+		.on("dragend", function(d) { 
+			$(this).css("cursor", "default"); 
+			d3.event.sourceEvent.stopPropagation();
+		});
 			
-	var info = function(d) {
-		if(d3.event.defaultPrevented) 
-			return;
-		alert(d3.select("#" + this.id).data()[0].type + " node");
-	}
-
 	var isNextNode = function(node) {
 		pNodeGeom.nodeTarget = node;
 	}
@@ -53,7 +58,7 @@ var pNodeGeom = (function() {
 	}
 	
 	
-/* node rendering **********************************************************************/
+/* node rendering *************************************************************************************/
 	
 	/**************************************************************************************************
 	/* create the group and handles for a node. Specific node type will be set later in the function
@@ -64,26 +69,17 @@ var pNodeGeom = (function() {
 		var node = nodeGroup.append("g")
 			.data([pNode])
 			.attr("class", "pNode")
-			.attr("id", "node" + this.id)
+			.attr("id", this.id)
 			.attr("transform", function(d) { return "translate(" + d.getOrigin()[0] + "," + d.getOrigin()[1] + ")"; } )
 			.on("mousedown", function() { nodeTarget = this.id; })
 			.on("mouseover", function() { 
 					if(WebStudio.isPath === true){isNextNode(this);} 
-					console.log(this);
 				})
-			.on("mouseup", function(d) { console.log(d) } )
-			.on("click", info)
+			.on("mouseout", function() {
+					if(WebStudio.isPath === true){isNextNode(null);}
+				})
+			.on("click", WebStudio.clickHandler)
 			.call(drag);
-	
-		node.append("rect")
-			.attr("x", "0")
-			.attr("y", "0")
-			.attr("width", "100")
-			.attr("height", "100")
-			.attr("stroke", "black")
-			.attr("stroke-dasharray", "10, 10")
-			.attr("fill", "none")
-			.attr("visibility", "hidden");
 	
 		// triangular handles surrounding the node
 		node.append("path")
@@ -92,10 +88,6 @@ var pNodeGeom = (function() {
 			.attr("d", "M 0 50 L 10 40 L 10 60 L 0 50 M 50 0 L 60 10 L 40 10 L 50 0 M 100 50 L 90 60 L 90 40 L 100 50 M 50 100 L 40 90 L 60 90 L 50 100")
 			.attr("fill", "black")
 			.on("mousedown", createPath);
-			
-		//console.log($("#node" + pNode.getID()));
-		
-	
 		
 		if(node.data()[0].type === "ghost")
 			ghostNode(node);
@@ -161,6 +153,9 @@ var pNodeGeom = (function() {
 })();
 
 
+
+/*****************************************************************************************************/
+
 /************************************************************************************
 /* Create and draw a path between two nodes
 /************************************************************************************/
@@ -168,6 +163,7 @@ var pPathGeom = (function() {
 	var id;
 	var line;			
 
+/* Path rendering *****************************************************************************/	
 	var createPath = function(d, whiteboard) {
 		WebStudio.isPath = true;
 		
@@ -220,24 +216,36 @@ var pPathGeom = (function() {
 		
 			var pathID = "path" + WebStudio.pathCount;
 
+			/* save the path and add its source and target node data to the path data */
+			var pPath = new PPath(pathID);
+			
+			pPath.x1 = source.x;
+			pPath.y1 = source.y;
+			pPath.x2 = target.x;
+			pPath.y2 = target.y;
+			
+			pPath.setSource(d3.select("#" + pNodeGeom.nodeSource.id));
+			pPath.setTarget(d3.select("#" + pNodeGeom.nodeTarget.id));
+			data.paths.push(pPath);
+			
+			
 			d3.select("#paths").append("path")
+				.data([pPath])
 				.attr("id", pathID)
 				.attr("fill", "none")
 				.attr("stroke", "black")
 				.attr("stroke-width", "2")
 				.attr("d", diagonal)
-				.on("click", function(d) { alert(pathID) } )
-				.on("mouseover", function(d) { d3.select(d3.event.target).attr("stroke-width", "5").attr("stroke", "red"); } )
-				.on("mouseout", function(d) { d3.select(d3.event.target).attr("stroke-width", "2").attr("stroke", "black"); } );
+				.on("click", WebStudio.clickHandler)
+				.on("mouseover", function(d) { 
+					if(d.isSelected !== true)
+						d3.select(d3.event.target).attr("stroke-width", "5").attr("stroke", "red"); 
+					})
+				.on("mouseout", function(d) { 
+					if(d.isSelected !== true)
+						d3.select(d3.event.target).attr("stroke-width", "2").attr("stroke", "black"); 
+					});
 				
-			$("#" + pathID).on("mouseup", function() { console.log(pathID + " over"); });
-				
-			/* save the path and add its source and target node data to the path data */
-			var pPath = new PPath(pathID);
-			
-			pPath.setSource(d3.select("#" + pNodeGeom.nodeSource.id));
-			pPath.setTarget(d3.select("#" + pNodeGeom.nodeTarget.id));
-			data.paths.push(pPath);
 			
 			/* add the path to the appropriate node data */
 			d3.select("#" + pNodeGeom.nodeSource.id).data()[0].setTarget(pNodeGeom.nodeTarget);

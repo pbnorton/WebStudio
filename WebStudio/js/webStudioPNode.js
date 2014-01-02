@@ -1,6 +1,9 @@
 function PNode(id, type, x, y) {
 	this.id = id;
 	this.type = type;
+	
+	this.isSelected = false;
+	
 	this.origin = [x, y];
 	this.width = 100;
 	this.height = 100;
