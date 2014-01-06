@@ -5,6 +5,9 @@ function PPath(id) {
 	this.x2;
 	this.y2;
 	
+	this.cx;
+	this.cy;
+	
 	this.isSelected = false;
 	
 	this.nodeSource;

@@ -11,6 +11,30 @@
 	border: solid 1px black;
 }
 
+svg {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: -1;
+}
+
+.controls {
+	width: 100px;
+	margin: 0 auto;
+	margin-top: 5px;
+	border: 2px solid black;
+	border-radius: 10px;
+}
+
+ul {
+	text-align: center;
+	padding: 5px;
+}
+
+ul li {
+	display: inline;
+}
+
 .overlay {
 	position: fixed;
 	top: 0;
@@ -44,7 +68,7 @@
 	top: -7px;
 	right: -7px;
 }
-
+/*
 .menu-bar {
 	position: absolute;
 	left: 0;
@@ -70,7 +94,7 @@ ul > li {
 	display: inline-block;
 	padding-right: 10px;
 }
-
+*/
 .menu-slide {
 	position: absolute;
 	
@@ -78,7 +102,7 @@ ul > li {
 
 .panel {
 	position: absolute;
-	left: 0px;
+	left: -255px;
 	top: 100px;
 	height: 550px;
 	width: 250px;

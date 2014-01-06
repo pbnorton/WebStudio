@@ -6,14 +6,15 @@ var WebStudio = (function() {
 	var whiteboard = d3.select("body")
 						.append("svg")
 						.attr("id", "whiteboard");
-	$("#whiteboard").droppable( {
+	$("#whiteboard").droppable( { // jQueryUI functionality to allow dropping of nodes from the toolbox
 		accept: ".icon",
 		drop: function(e, ui) {
 			addNode(WebStudio.moduleSource, ui.offset.left, ui.offset.top);
+			//addNode(WebStudio.moduleSource, ui.offset.left, e.pageY);
 		}
 	});
 	
-	var paths = whiteboard.append("g").attr("id", "paths"); // use class here to deal with quirky event handling
+	var paths = whiteboard.append("g").attr("id", "paths"); 
 	var pathCount = 0;
 	
 	var nodes = whiteboard.append("g").attr("id", "nodes");
@@ -29,7 +30,6 @@ var WebStudio = (function() {
 	// bind data to the gui
 	paths.selectAll(".pPath").data(data.paths);	
 	nodes.selectAll(".pNode").data(data.nodes);
-	
 	
 	// deselect a selected node or path
 	var deselect = function(selection) {
@@ -113,7 +113,14 @@ var WebStudio = (function() {
 	var addPath = function(d) {
 		pPathGeom.createPath(d, whiteboard);
 		
-		this.pathCount++;
+		//this.pathCount++;
+	}
+	
+	// create tree root using start arrow, path, ghost node
+	var init = function() {
+		addNode("start", 20, 20);
+		addNode("ghost", 120, 120);
+		pPathGeom.generatePath(data.nodes[0], data.nodes[1]);
 	}
 	
 	return {
@@ -123,8 +130,8 @@ var WebStudio = (function() {
 		addNode: addNode,
 		addPath: addPath,
 		clickHandler: clickHandler,
-		isPath: isPath
+		isPath: isPath,
+		init: init
 	};
 })();
-
 

@@ -10,6 +10,8 @@ function PNode(id, type, x, y) {
 	this.x = this.origin[0] + (this.width / 2);
 	this.y = this.origin[1] + (this.height / 2);
 	
+	this.caption = "";
+	
 	this.sourceNodes = [];
 	this.targetNodes = [];
 	

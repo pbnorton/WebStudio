@@ -17,9 +17,24 @@ $(document).ready(function() {
 		}
 	});
 	
-	//modal.open({width: 300, height: 300, content: "test"});
+	$("#runBtn").on("click", function() {
+		traversal(data.nodes[0]);
+	});
+	
+	WebStudio.init();
+	
+	
 });
 
+var traversal = function(node) {
+	if(node === null)
+		return 0;
+	
+	console.log(node.id + " " + node.type);
+	
+	for(var i in node.targetNodes)
+		traversal(node.targetNodes[i]);
+}
 
 /* ************************************************************************************* */
 /* Modal -> access node and path settings
