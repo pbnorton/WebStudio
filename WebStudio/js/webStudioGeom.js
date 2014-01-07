@@ -41,7 +41,7 @@ var pNodeGeom = (function() {
 				});
 				
 				node.data()[0].setOrigin(node.data()[0].getOrigin());
-				node.data()[0].updatePaths(node.data()[0].paths);
+				node.data()[0].updatePaths();
 			}
 		})
 		.on("dragend", function(d) { 
@@ -73,10 +73,10 @@ var pNodeGeom = (function() {
 			}
 		}
 		
-		
 		for(var i = 0; i < data.paths.length; ++i) {
-			if((node.sourceNodes.length === 0) && (node.targetNodes.length === 0)) {
+			if((node.sourcePaths.length === 0) && (node.targetPaths.length === 0)) {
 				var ppath = d3.select("#" + data.paths[i].id);
+			 
 				var bbox = ppath.node().getBBox(); // get bounding box of path
 				var cx = bbox.x + bbox.width / 2; // get center point of bounding box
 				var cy = bbox.y + bbox.height / 2;
@@ -86,36 +86,19 @@ var pNodeGeom = (function() {
 				   (cx <= node.x + node.width / 2) &&
 				   (cy >= node.y - node.height / 2) &&
 				   (cy <= node.y + node.height / 2)) {
-						var pathSource = data.paths[i].nodeSource; //d3 object
-						var pathTarget = data.paths[i].nodeTarget;
+						var pathSource = data.paths[i].source;
+						var pathTarget = data.paths[i].target;
 				
-						// set source for spliced node. Target will be set when new path is created below
-						node.setSource(pathSource);
-						node.addPath(data.paths[i]);
-				
-						// update source and target nodes
-						for(var j = 0; j < pathSource.data()[0].targetNodes.length; ++j) {
-							if(pathSource.data()[0].targetNodes[j].id === pathTarget.data()[0].id) {
-								pathSource.data()[0].targetNodes.splice(j, 1);
-								pathSource.data()[0].setTarget(node);
-								break;
-							}
-						}
+						// set source for spliced node. Remove source from second existing node
+						node.setSource(data.paths[i]);
+						pathTarget.removeSource(data.paths[i]);
 						
-						for(var j = 0; j < pathTarget.data()[0].sourceNodes.length; ++j) {
-							if(pathTarget.data()[0].sourceNodes[j].id === pathSource.data()[0].id) {
-								pathTarget.data()[0].sourceNodes.splice(j, 1);
-								pathTarget.data()[0].setSource(node);
-								break;
-							}
-						}
-				
 						// update existing path
-						data.paths[i].setTarget(d3.select("#" + node.id));
+						data.paths[i].setTarget(node);
 						data.paths[i].updatePath();
 				
 						// create new second path, sets target for spliced node
-						pPathGeom.generatePath(node, pathTarget.data()[0]);
+						pPathGeom.generatePath(node, pathTarget);
 						
 						return;
 				}
@@ -294,9 +277,8 @@ var pPathGeom = (function() {
 		WebStudio.isPath = false;
 		
 		/* make sure we have a target and that we're not drawing a line from a node to itself */
-		if(pNodeGeom.nodeTarget && (pNodeGeom.nodeSource !== pNodeGeom.nodeTarget)) {			
+		if(pNodeGeom.nodeTarget && (pNodeGeom.nodeSource !== pNodeGeom.nodeTarget))
 			generatePath(pNodeGeom.nodeSource, pNodeGeom.nodeTarget);
-		}
 		
 		pNodeGeom.nodeSource = null;
 		pNodeGeom.nodeTarget = null;
@@ -318,7 +300,7 @@ var pPathGeom = (function() {
 		var pathID = "path" + WebStudio.pathCount;
 
 		/* save the path and add its source and target node data to the path data */
-		var pPath = new PPath(pathID);
+		var pPath = new PPath(pathID, source, target);
 		WebStudio.pathCount++;
 		
 		pPath.x1 = s.x;
@@ -326,11 +308,8 @@ var pPathGeom = (function() {
 		pPath.x2 = t.x;
 		pPath.y2 = t.y;
 		
-		pPath.setSource(d3.select("#" + source.id));
-		pPath.setTarget(d3.select("#" + target.id));
 		data.paths.push(pPath);
-		
-		
+	
 		d3.select("#paths").append("path")
 			.data([pPath])
 			.attr("id", pathID)
@@ -347,14 +326,10 @@ var pPathGeom = (function() {
 				if(d.isSelected !== true)
 					d3.select(d3.event.target).attr("stroke-width", "2").attr("stroke", "black"); 
 				});
-			
-		
+						
 		/* add the path to the appropriate node data */
-		d3.select("#" + source.id).data()[0].setTarget(target);
-		d3.select("#" + source.id).data()[0].addPath(pPath);
-		
-		d3.select("#" + target.id).data()[0].setSource(source);
-		d3.select("#" + target.id).data()[0].addPath(pPath);
+		d3.select("#" + source.id).data()[0].setTarget(pPath);		
+		d3.select("#" + target.id).data()[0].setSource(pPath);
 	}
 	
 	return { createPath: createPath,

@@ -12,10 +12,8 @@ function PNode(id, type, x, y) {
 	
 	this.caption = "";
 	
-	this.sourceNodes = [];
-	this.targetNodes = [];
-	
-	this.paths = [];
+	this.sourcePaths = [];
+	this.targetPaths = [];
 }
 
 PNode.prototype.getID = function() { return this.id; }
@@ -34,32 +32,28 @@ PNode.prototype.setOrigin = function(o) {
 	pNodeGeom.updateNodePos(this);
 }
 
-PNode.prototype.setSource = function(pNode) {
-	this.sourceNodes.push(pNode);
+PNode.prototype.setSource = function(path) {
+	this.sourcePaths.push(path);
 }
 
-PNode.prototype.removeSource = function(pNode) {
-	var index = lookup(pNode, this.sourceNodes);
-	this.sourceNodes.splice(index, 1);
+PNode.prototype.removeSource = function(path) {
+	var index = lookup(path, this.sourcePaths);
+	this.sourcePaths.splice(index, 1);
 }
 
-PNode.prototype.setTarget = function(pNode) {
-	this.targetNodes.push(pNode);
+PNode.prototype.setTarget = function(path) {
+	this.targetPaths.push(path);
 }
 
-PNode.prototype.removeTarget = function(pNode) {
-	var index = lookup(pNode, this.targetNodes);
-	this.targetNodes.splice(index, 1);
+PNode.prototype.removeTarget = function(path) {
+	var index = lookup(path, this.targetPaths);
+	this.targetPaths.splice(index, 1);
 }
 
-PNode.prototype.addPath = function(path) { this.paths.push(path); }
-
-PNode.prototype.removePath = function(path) { 
-	var index = lookup(path, this.paths);
-	this.paths.splice(index, 1); 
-}
-
-PNode.prototype.updatePaths = function(paths) {	
-	for(var i in paths)
-		paths[i].updatePath();
+PNode.prototype.updatePaths = function() {	
+	for(var i = 0; i < this.sourcePaths.length; ++i)
+		this.sourcePaths[i].updatePath();
+	
+	for(var i in this.targetPaths)
+		this.targetPaths[i].updatePath();
 }

@@ -1,4 +1,4 @@
-function PPath(id) {
+function PPath(id, source, target) {
 	this.id = id;
 	this.x1;
 	this.y1;
@@ -10,24 +10,25 @@ function PPath(id) {
 	
 	this.isSelected = false;
 	
-	this.nodeSource;
-	this.nodeTarget;
+	this.source = source;
+	this.target = target;
 }
 
-PPath.prototype.setSource = function(source) { this.nodeSource = source; }
+PPath.prototype.setSource = function(source) { this.source = source; }
 
-PPath.prototype.getSource = function() { d3.select("#" + nodeSource); }
+PPath.prototype.getSource = function() { d3.select("#" + source); }
 
-PPath.prototype.getTarget = function() { d3.select("#" + nodeTarget); }
+PPath.prototype.setTarget = function(target) { this.target = target; }
 
-PPath.prototype.setTarget = function(target) { this.nodeTarget = target; }
+PPath.prototype.getTarget = function() { d3.select("#" + target); }
+
 
 PPath.prototype.updatePath = function() {	
-	var source = this.nodeSource;
-	var target = this.nodeTarget;
+	var source = this.source;
+	var target = this.target;
 	
-	source = {x: source.data()[0].x, y: source.data()[0].y };
-	target = {x: target.data()[0].x, y: target.data()[0].y };
+	source = {x: source.x, y: source.y };
+	target = {x: target.x, y: target.y };
 
 	var diagonal = d3.svg.diagonal()
 		.source(source)
@@ -37,6 +38,6 @@ PPath.prototype.updatePath = function() {
 	this.y1 = source.y;
 	this.x2 = target.x;
 	this.y2 = target.y;
-	
+
 	d3.select("#" + this.id).attr("d", diagonal);
 }

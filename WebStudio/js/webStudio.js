@@ -1,6 +1,6 @@
 /************************************************************************************
 /*	Global namespace, event flags, and node/path functions
-/************************************************************************************/
+/***********************	*************************************************************/
 
 var WebStudio = (function() {
 	var whiteboard = d3.select("body")
@@ -10,7 +10,6 @@ var WebStudio = (function() {
 		accept: ".icon",
 		drop: function(e, ui) {
 			addNode(WebStudio.moduleSource, ui.offset.left, ui.offset.top);
-			//addNode(WebStudio.moduleSource, ui.offset.left, e.pageY);
 		}
 	});
 	
@@ -96,12 +95,9 @@ var WebStudio = (function() {
 				 .attr("stroke", "aqua");
 			}
 		}
-		else { // open the modal
-			if(p.attr("class") === "pNode")
-				modal.open({width: 300, height: 300, content: p.data()[0].id});
-			else
-				modal.open({width: 300, height: 300, content: p.data()[0].id});
-		}
+		else // open the modal
+			modal.open({content: p.data()[0]});
+		
 			
 		d3.event.stopPropagation();	// stop the parent SVG from registering the click
 	}
@@ -110,27 +106,30 @@ var WebStudio = (function() {
 	
 	// node and path handlers
 	
-	var deleteNode = function(node) {
-		// this is messy...need to not only delete the node, but any associated paths, and update the
-		// source and target nodes appropriately
-		
+	var deleteNode = function(node) {	
 		var index = lookup(node, data.nodes);
+	
+		while(data.nodes[index].sourcePaths.length > 0) 
+			deletePath(data.nodes[index].sourcePaths[0]);
 		
-		for(var i = 0; i < data.nodes[index].sourceNodes.length; ++i)
-			data.nodes[index].sourceNodes[i].removeTarget(node);
-		
-		for(var i = 0; i < data.nodes[index].targetNodes.length; ++i)
-			data.nodes[index].targetNodes[i].removeSource(node);
-		
-		for(var i = 0; i < data.nodes[index].paths.length; ++i) {
-			d3.select("#" + data.nodes[index].paths[i].id).remove();
-		}
+		while(data.nodes[index].targetPaths.length > 0)
+			deletePath(data.nodes[index].targetPaths[0]);
 		
 		data.nodes.splice(index, 1); // remove the node from data
 		d3.select("#" + node).remove(); // remove the node from d3
 		
-		
 		d3.event.stopPropagation();
+	}
+	
+	var deletePath = function(path) {
+		var index = lookup(path.id, data.paths);		
+		var source = lookup(path.source.id, data.nodes);
+		var target = lookup(path.target.id, data.nodes);
+	
+		data.nodes[source].removeTarget(path.id);
+		data.nodes[target].removeSource(path.id);
+		d3.select("#" + path.id).remove();
+		data.paths.splice(index, 1);
 	}
 	
 	var addNode = function(type, x, y) {
@@ -146,8 +145,6 @@ var WebStudio = (function() {
 	
 	var addPath = function(d) {
 		pPathGeom.createPath(d, whiteboard);
-		
-		//this.pathCount++;
 	}
 	
 	// create tree root using start arrow, path, ghost node

@@ -26,14 +26,18 @@ $(document).ready(function() {
 	
 });
 
-var traversal = function(node) {
-	if(node === null)
+var traversal = function(p) {
+	if(p === null)
 		return 0;
 	
-	console.log(node.id + " " + node.type);
-	
-	for(var i in node.targetNodes)
-		traversal(node.targetNodes[i]);
+	if(p instanceof PNode) {
+		console.log(p.id + " " + p.type);
+		forEach(p.targetPaths, traversal);//traversal(node.targetPaths[i]);
+	}
+	else if(p instanceof PPath) {
+		console.log(p.id);
+		traversal(p.target);
+	}
 }
 
 /* ************************************************************************************* */
@@ -61,7 +65,29 @@ var modal = (function() {
 	
 	// open the modal
 	var open = function(settings) {
-		$modalContent.empty().append(settings.content);
+		$modalContent.empty();
+		
+		if(settings instanceof PNode) {
+			// dumping source and target info into the modal
+			$modalContent.append(settings.content.id + "<br><hr>");
+			
+			$modalContent.append("<p>Source Paths: </p>");
+			for(var i = 0; i < settings.content.sourcePaths.length; ++i)
+				$modalContent.append(settings.content.sourcePaths[i].id + "<br>");
+			
+			$modalContent.append("<br>");
+			
+			$modalContent.append("<p>Target Paths: </p>");
+			for(var i = 0; i < settings.content.targetPaths.length; ++i)
+				$modalContent.append(settings.content.targetPaths[i].id + "<br>");
+		}
+		else {
+			$modalContent.append(settings.content.id + "<br><hr>");
+			
+			$modalContent.append("<p>Source Node: " + settings.content.source.id + "</p>");
+			$modalContent.append("<br>");
+			$modalContent.append("<p>Target Node: " + settings.content.target.id + "</p>");
+		}
 		
 		$modal.css({
 			width: settings.width || 'auto',
