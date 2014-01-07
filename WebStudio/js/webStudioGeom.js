@@ -57,6 +57,7 @@ var pNodeGeom = (function() {
 	var createPath = function(d) {
 		WebStudio.addPath(d);
 	}
+	
 	 // check for intersection in order to overwrite nodes or splice into paths
 	var isIntersect = function(d, node) {
 		// check if the mouseup position falls within the bounds of another node
@@ -66,7 +67,7 @@ var pNodeGeom = (function() {
 				   (d.x <= data.nodes[i].x + (data.nodes[i].width / 2)) &&
 				   (d.y >= data.nodes[i].y - (data.nodes[i].height / 2)) &&
 				   (d.y <= data.nodes[i].y + (data.nodes[i].height / 2))) {
-						console.log("intersect " + data.nodes[i].id);
+						replaceNode(node.id, data.nodes[i].id);
 						return;
 					}
 			}
@@ -120,6 +121,13 @@ var pNodeGeom = (function() {
 				}
 			}
 		}
+	}
+	
+	// drag and drop a node onto an existing to replace it
+	var replaceNode = function(node1, node2) {
+		console.log(node1 + " will replace " + node2);
+		console.log(d3.select("#" + node1));
+		console.log(d3.select("#" + node2));
 	}
 	
 /* node rendering *************************************************************************************/

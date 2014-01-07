@@ -57,7 +57,7 @@ var WebStudio = (function() {
 		if(d3.event.defaultPrevented) 
 			return;
 		
-		var p = d3.select(this);
+		var p = d3.select(this); // variable p is used because selection could be node or path
 	
 		// check if anything is already selected
 		var selection = d3.selectAll(".selection");
@@ -72,17 +72,28 @@ var WebStudio = (function() {
 			
 			// nodes and paths need to be handled slightly differently due to the nature of the underlying object
 			if(p.attr("class") === "pNode") {
-				d3.select("#" + p.data()[0].id).append("path")
-					.attr("class", "selection")
-					.attr("d", "M 0 0 H 100 M 100 0 V 100 M 100 100 H 0 M 0 100 V 0")
-					.attr("stroke", "black")
-					.attr("stroke-dasharray", "20, 20");
+					p.append("path")
+						.attr("class", "selection")
+						.attr("d", "M 0 0 H 100 M 100 0 V 100 M 100 100 H 0 M 0 100 V 0")
+						.attr("stroke", "black")
+						.attr("stroke-dasharray", "20, 20");
+						
+					if(p.attr("id") !== "node0") { // do not add a delete button to the start node
+						p.append("image")
+							.data([this.id])
+							.attr("class", "selection")
+							.attr("xlink:href", "img/close.png")
+							.attr("x", "76")
+							.attr("y", "0")
+							.attr("width", "24")
+							.attr("height", "24")
+							.on("click", function(d) { deleteNode(d); });
+					}
 			}
 			else {
-				d3.select("#" + p.data()[0].id)
-					.attr("class", "selection")
-					.attr("stroke-width", "5")
-					.attr("stroke", "aqua");
+				p.attr("class", "selection")
+				 .attr("stroke-width", "5")
+				 .attr("stroke", "aqua");
 			}
 		}
 		else { // open the modal
@@ -92,13 +103,36 @@ var WebStudio = (function() {
 				modal.open({width: 300, height: 300, content: p.data()[0].id});
 		}
 			
-	//console.log(data.paths);
 		d3.event.stopPropagation();	// stop the parent SVG from registering the click
 	}
 
 	whiteboard.on("click", deselect);
 	
 	// node and path handlers
+	
+	var deleteNode = function(node) {
+		// this is messy...need to not only delete the node, but any associated paths, and update the
+		// source and target nodes appropriately
+		
+		var index = lookup(node, data.nodes);
+		
+		for(var i = 0; i < data.nodes[index].sourceNodes.length; ++i)
+			data.nodes[index].sourceNodes[i].removeTarget(node);
+		
+		for(var i = 0; i < data.nodes[index].targetNodes.length; ++i)
+			data.nodes[index].targetNodes[i].removeSource(node);
+		
+		for(var i = 0; i < data.nodes[index].paths.length; ++i) {
+			d3.select("#" + data.nodes[index].paths[i].id).remove();
+		}
+		
+		data.nodes.splice(index, 1); // remove the node from data
+		d3.select("#" + node).remove(); // remove the node from d3
+		
+		
+		d3.event.stopPropagation();
+	}
+	
 	var addNode = function(type, x, y) {
 		var pNode = new PNode("node" + nodeCount, type, x, y);
 		data.nodes.push(pNode);

@@ -4,7 +4,7 @@ function PNode(id, type, x, y) {
 	
 	this.isSelected = false;
 	
-	this.origin = [x, y];
+	this.origin = [x, y]; // top left
 	this.width = 100;
 	this.height = 100;
 	this.x = this.origin[0] + (this.width / 2);
@@ -38,11 +38,26 @@ PNode.prototype.setSource = function(pNode) {
 	this.sourceNodes.push(pNode);
 }
 
+PNode.prototype.removeSource = function(pNode) {
+	var index = lookup(pNode, this.sourceNodes);
+	this.sourceNodes.splice(index, 1);
+}
+
 PNode.prototype.setTarget = function(pNode) {
 	this.targetNodes.push(pNode);
 }
 
+PNode.prototype.removeTarget = function(pNode) {
+	var index = lookup(pNode, this.targetNodes);
+	this.targetNodes.splice(index, 1);
+}
+
 PNode.prototype.addPath = function(path) { this.paths.push(path); }
+
+PNode.prototype.removePath = function(path) { 
+	var index = lookup(path, this.paths);
+	this.paths.splice(index, 1); 
+}
 
 PNode.prototype.updatePaths = function(paths) {	
 	for(var i in paths)
