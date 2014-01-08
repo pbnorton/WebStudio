@@ -27,8 +27,8 @@ var WebStudio = (function() {
 	var moduleSource = "";
 	
 	// bind data to the gui
-	paths.selectAll(".pPath").data(data.paths);	
-	nodes.selectAll(".pNode").data(data.nodes);
+	//paths.selectAll(".pPath").data(data.paths);	
+	//nodes.selectAll(".pNode").data(data.nodes);
 	
 	// deselect a selected node or path
 	var deselect = function(selection) {
@@ -37,11 +37,11 @@ var WebStudio = (function() {
 		if(selection[0].length !== 0) {
 			selection.data()[0].isSelected = false;
 
-			if(d3.select(selection[0][0].parentNode).attr("id") === "paths") {
+			if(d3.select(selection[0][0].parentNode).attr("class") === "PPath") {
 				selection.data(selection.data())
 					.attr("class", null)
-					.attr("stroke-width", "2")
-					.attr("stroke", "black");
+					.attr("stroke-width", "1");
+					//.attr("stroke", "red");
 			}
 			else {
 				selection.remove();
@@ -61,10 +61,11 @@ var WebStudio = (function() {
 		// check if anything is already selected
 		var selection = d3.selectAll(".selection");
 		//deselect(selection)
+
 		if(selection[0].length !== 0 && pSelected !== this.id) {
 			deselect(selection); // this function is also used to deselect an item by clicking on the empty whiteboard
 		}
-		
+	
 		if(p.data()[0].isSelected === false) { // select the item
 			p.data()[0].isSelected = true;
 			pSelected = p.data()[0].id;
@@ -91,14 +92,13 @@ var WebStudio = (function() {
 			}
 			else {
 				p.attr("class", "selection")
-				 .attr("stroke-width", "5")
-				 .attr("stroke", "aqua");
+				 .attr("stroke-width", "5");
+				 //.attr("stroke", "aqua");
 			}
 		}
 		else // open the modal
 			modal.open({content: p.data()[0]});
-		
-			
+	
 		d3.event.stopPropagation();	// stop the parent SVG from registering the click
 	}
 
@@ -107,7 +107,7 @@ var WebStudio = (function() {
 	// node and path handlers
 	
 	var deleteNode = function(node) {	
-		var index = lookup(node, data.nodes);
+		var index = lookup(node, "id", data.nodes);
 	
 		while(data.nodes[index].sourcePaths.length > 0) 
 			deletePath(data.nodes[index].sourcePaths[0]);
@@ -122,13 +122,14 @@ var WebStudio = (function() {
 	}
 	
 	var deletePath = function(path) {
-		var index = lookup(path.id, data.paths);		
-		var source = lookup(path.source.id, data.nodes);
-		var target = lookup(path.target.id, data.nodes);
+		var index = lookup(path.id, "id", data.paths);		
+		var source = lookup(path.source.id, "id", data.nodes);
+		var target = lookup(path.target.id, "id", data.nodes);
 	
 		data.nodes[source].removeTarget(path.id);
 		data.nodes[target].removeSource(path.id);
-		d3.select("#" + path.id).remove();
+		//console.log(d3.select("#" + path.id).node().parentNode);
+		d3.select("#" + path.id).node().parentNode.remove();
 		data.paths.splice(index, 1);
 	}
 	
@@ -149,9 +150,26 @@ var WebStudio = (function() {
 	
 	// create tree root using start arrow, path, ghost node
 	var init = function() {
+		paths.selectAll(".pPath").data(data.paths);	
+		nodes.selectAll(".pNode").data(data.nodes);
+			
 		addNode("start", 20, 20);
 		addNode("ghost", 120, 120);
-		pPathGeom.generatePath(data.nodes[0], data.nodes[1]);
+		pPathGeom.generatePath(data.nodes[0], data.nodes[1], "goto");
+	/*
+		d3.json("root.json", function(json) {
+			console.log(json);
+			paths.selectAll(".pPath").data(json.paths);	
+			nodes.selectAll(".pNode").data(json.nodes);
+			
+			update(json);
+		});
+	*/
+	}
+	
+	function update(data) {
+		forEach(data.nodes, addNode);
+		forEach(data.paths, pPathGeom.generatePath);
 	}
 	
 	return {

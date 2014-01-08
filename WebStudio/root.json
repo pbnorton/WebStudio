@@ -1,0 +1,24 @@
+{
+	"nodes": [
+		{
+			"id": "node0",
+			"type": "start",
+			"x": 20,
+			"y": 20
+		},
+		{
+			"id": "node1",
+			"type": "ghost",
+			"x": 120,
+			"y": 120
+		}
+	],
+	"paths": [
+		{
+			"id": "path0",
+			"type": "goto",
+			"source": "node0",
+			"target": "node1"
+		}
+	]
+}

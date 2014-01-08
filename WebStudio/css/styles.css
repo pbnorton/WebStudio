@@ -11,11 +11,16 @@
 	border: solid 1px black;
 }
 
-svg {
+#whiteboard {
 	position: absolute;
 	left: 0;
 	top: 0;
 	z-index: -1;
+
+	min-width: 1024px;
+	min-height: 768px;
+	
+	border: 1px dashed grey;
 }
 
 .controls {

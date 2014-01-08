@@ -18,11 +18,11 @@ $(document).ready(function() {
 	});
 	
 	$("#runBtn").on("click", function() {
-		traversal(data.nodes[0]);
+		var start = lookup("start", "type", data.nodes);
+		traversal(data.nodes[start]);
 	});
 	
 	WebStudio.init();
-	
 	
 });
 
@@ -35,7 +35,7 @@ var traversal = function(p) {
 		forEach(p.targetPaths, traversal);//traversal(node.targetPaths[i]);
 	}
 	else if(p instanceof PPath) {
-		console.log(p.id);
+		console.log(p.id + " " + p.type);
 		traversal(p.target);
 	}
 }
@@ -66,8 +66,8 @@ var modal = (function() {
 	// open the modal
 	var open = function(settings) {
 		$modalContent.empty();
-		
-		if(settings instanceof PNode) {
+
+		if(settings.content instanceof PNode) {
 			// dumping source and target info into the modal
 			$modalContent.append(settings.content.id + "<br><hr>");
 			
