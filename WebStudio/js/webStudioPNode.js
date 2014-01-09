@@ -152,7 +152,7 @@ var pNodeGeom = (function() {
 						pathTarget.removeSource(data.paths[i]);
 						
 						// update existing path
-						data.paths[i].setTarget(node);
+						data.paths[i].target = node;
 						data.paths[i].updatePath();
 				
 						// create new second path, sets target for spliced node
