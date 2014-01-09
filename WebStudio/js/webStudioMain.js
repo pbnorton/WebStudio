@@ -7,6 +7,7 @@ $(document).ready(function() {
 		}, "fast");
 	});
 	
+	// drag-drop handler for the tool box
 	$(".icon.draggable").draggable({
 		cursor: "move",
 		opacity: .5,
@@ -17,6 +18,7 @@ $(document).ready(function() {
 		}
 	});
 	
+	// event handler for the action controls
 	$("#runBtn").on("click", function() {
 		var start = lookup("start", "type", data.nodes);
 		traversal(data.nodes[start]);
@@ -26,11 +28,13 @@ $(document).ready(function() {
 	
 });
 
-var traversal = function(p) {
+function traversal(p) {
 	if(p === null)
 		return 0;
 	
 	if(p instanceof PNode) {
+		//if(p.type === "twitter")
+		//	console.log("value = " + p.adaptor());
 		console.log(p.id + " " + p.type);
 		forEach(p.targetPaths, traversal);//traversal(node.targetPaths[i]);
 	}
@@ -57,7 +61,8 @@ var modal = (function() {
 	
 	$modal.hide();
 	$overlay.hide();
-	$modal.append($modalContent, $closeBtn);
+	//$modal.append($modalContent, $closeBtn);
+	$modal.append($modalContent);
 	
 	$("document").ready(function() {
 		$("body").append($overlay, $modal);
@@ -122,6 +127,11 @@ var modal = (function() {
 		$modalContent.empty();
 		$(window).unbind('resize.modal');
 	}
+	
+	$overlay.click(function(e) {
+		e.preventDefault();
+		close();
+	});
 	
 	$closeBtn.click(function(e) {
 		e.preventDefault();

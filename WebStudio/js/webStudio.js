@@ -9,7 +9,8 @@ var WebStudio = (function() {
 	$("#whiteboard").droppable( { // jQueryUI functionality to allow dropping of nodes from the toolbox
 		accept: ".icon",
 		drop: function(e, ui) {
-			addNode(WebStudio.moduleSource, ui.offset.left, ui.offset.top);
+			if(ui.position.left > $(".panel").outerWidth()) // make sure user clears the toolbox
+				addNode(WebStudio.moduleSource, ui.offset.left, ui.offset.top);
 		}
 	});
 	
@@ -107,37 +108,44 @@ var WebStudio = (function() {
 	// node and path handlers
 	
 	var deleteNode = function(node) {	
-		var index = lookup(node, "id", data.nodes);
-	
-		while(data.nodes[index].sourcePaths.length > 0) 
-			deletePath(data.nodes[index].sourcePaths[0]);
+		if(node !== "node0" && node !== "node1") {
+			var index = lookup(node, "id", data.nodes);
 		
-		while(data.nodes[index].targetPaths.length > 0)
-			deletePath(data.nodes[index].targetPaths[0]);
-		
-		data.nodes.splice(index, 1); // remove the node from data
-		d3.select("#" + node).remove(); // remove the node from d3
-		
-		d3.event.stopPropagation();
+			while(data.nodes[index].sourcePaths.length > 0) 
+				deletePath(data.nodes[index].sourcePaths[0]);
+			
+			while(data.nodes[index].targetPaths.length > 0)
+				deletePath(data.nodes[index].targetPaths[0]);
+			
+			data.nodes.splice(index, 1); // remove the node from data
+			d3.select("#" + node).remove(); // remove the node from d3
+		}
+		else
+			alert("Cannot delete default nodes");
+			d3.event.stopPropagation();
 	}
 	
 	var deletePath = function(path) {
-		var index = lookup(path.id, "id", data.paths);		
-		var source = lookup(path.source.id, "id", data.nodes);
-		var target = lookup(path.target.id, "id", data.nodes);
-	
-		data.nodes[source].removeTarget(path.id);
-		data.nodes[target].removeSource(path.id);
-		//console.log(d3.select("#" + path.id).node().parentNode);
-		d3.select("#" + path.id).node().parentNode.remove();
-		data.paths.splice(index, 1);
+		if(path.id !== "path0") {
+			var index = lookup(path.id, "id", data.paths);		
+			var source = lookup(path.source.id, "id", data.nodes);
+			var target = lookup(path.target.id, "id", data.nodes);
+		
+			data.nodes[source].removeTarget(path.id);
+			data.nodes[target].removeSource(path.id);
+			//console.log(d3.select("#" + path.id).node().parentNode);
+			d3.select("#" + path.id).node().parentNode.remove();
+			data.paths.splice(index, 1);
+		}
+		else
+			alert("Cannot delete default path");
 	}
 	
 	var addNode = function(type, x, y) {
 		var pNode = new PNode("node" + nodeCount, type, x, y);
 		data.nodes.push(pNode);
 		
-		pNodeGeom.createNode(pNode, nodes);
+		pNodeGeom.createNode(pNode);
 		
 		nodeCount++;				
 		
@@ -154,8 +162,12 @@ var WebStudio = (function() {
 		nodes.selectAll(".pNode").data(data.nodes);
 			
 		addNode("start", 20, 20);
-		addNode("ghost", 120, 120);
+		addNode("twitter", 120, 120);
 		pPathGeom.generatePath(data.nodes[0], data.nodes[1], "goto");
+		
+		d3.json("root.json", function(json) {
+			console.log(json);
+		});
 	/*
 		d3.json("root.json", function(json) {
 			console.log(json);
@@ -177,6 +189,7 @@ var WebStudio = (function() {
 		nodeCount: nodeCount,
 		pathCount: pathCount,
 		addNode: addNode,
+		deleteNode: deleteNode,
 		addPath: addPath,
 		clickHandler: clickHandler,
 		isPath: isPath,

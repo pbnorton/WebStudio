@@ -1,6 +1,8 @@
 function PPath(id, source, target, type) {
 	this.id = id;
 	this.type = type || "";
+	this.source = source;
+	this.target = target;
 	
 	this.x1;
 	this.y1;
@@ -10,9 +12,6 @@ function PPath(id, source, target, type) {
 	this.label = "";
 	
 	this.isSelected = false;
-	
-	this.source = source;
-	this.target = target;
 }
 
 PPath.prototype.setSource = function(source) { this.source = source; }
@@ -151,14 +150,13 @@ var pPathGeom = (function() {
 			.data([pPath])
 			.attr("class", "PPath")
 			.attr("id", pathID);
-			
-	console.log(pPath.type.length);		
+				
 		newPath.append("path")
 			.attr("id", pPath.id)
 			.attr("fill", "none")
 			.attr("stroke", function() { return pPath.type.length === 0 ? "red" : "black"; })
-			//.attr("stroke-width", 1)
-			.attr("stroke-dasharray", function() { return pPath.type.length === 0 ? "5,5" : null; })
+			.attr("stroke-width", 1)
+			//.attr("stroke-dasharray", function() { return pPath.type.length === 0 ? "5,5" : null; })
 			.attr("fill", "white")
 			.attr("d", diagonal)
 			.on("click", WebStudio.clickHandler)
@@ -174,7 +172,7 @@ var pPathGeom = (function() {
 		var ctr = pPath.getCentroid();
 		newPath.append("text")
 			.attr("id", pPath.id + "-label")
-			.attr("x", ctr.x)
+			.attr("x", ctr.x - 20)
 			.attr("y", ctr.y + 20)
 			.text(pathID);
 			

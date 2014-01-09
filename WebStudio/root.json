@@ -4,13 +4,19 @@
 			"id": "node0",
 			"type": "start",
 			"x": 20,
-			"y": 20
+			"y": 20,
+			"targetPaths": [
+				"path0"
+			]
 		},
 		{
 			"id": "node1",
 			"type": "ghost",
 			"x": 120,
-			"y": 120
+			"y": 120,
+			"sourcePaths": [
+				"path0"
+			]
 		}
 	],
 	"paths": [

@@ -1,6 +1,10 @@
 function PNode(id, type, x, y) {
 	this.id = id;
 	this.type = type;
+	this.sourcePaths = [];
+	this.targetPaths = [];
+	
+	this.adaptor = function() { return Math.random(); };
 	
 	this.isSelected = false;
 	
@@ -11,9 +15,6 @@ function PNode(id, type, x, y) {
 	this.y = this.origin[1] + (this.height / 2);
 	
 	this.caption = "";
-	
-	this.sourcePaths = [];
-	this.targetPaths = [];
 }
 
 PNode.prototype.getID = function() { return this.id; }
@@ -133,7 +134,7 @@ var pNodeGeom = (function() {
 				   (d.x <= data.nodes[i].x + (data.nodes[i].width / 2)) &&
 				   (d.y >= data.nodes[i].y - (data.nodes[i].height / 2)) &&
 				   (d.y <= data.nodes[i].y + (data.nodes[i].height / 2))) {
-						replaceNode(node.id, data.nodes[i].id);
+						replaceNode(node, data.nodes[i]);
 						return;
 					}
 			}
@@ -173,10 +174,34 @@ var pNodeGeom = (function() {
 	}
 	
 	// drag and drop a node onto an existing to replace it
-	var replaceNode = function(node1, node2) {
-		console.log(node1 + " will replace " + node2);
-		console.log(d3.select("#" + node1));
-		console.log(d3.select("#" + node2));
+	var replaceNode = function(newNode, oldNode) {
+		console.log(newNode.type + " will replace " + oldNode.type);
+	/*
+		var newID = oldNode.id;
+		var oldID = newNode.id;
+		
+		newNode.id = oldNode.id;
+		newNode.sourcePaths = oldNode.sourcePaths.slice();
+		oldNode.sourcePaths = [];
+		newNode.targetPaths = oldNode.targetPaths.slice();
+		oldNode.targetPaths = [];
+		
+		newNode.origin = oldNode.origin.slice(); // top left
+
+		newNode.x = oldNode.x;
+		newNode.y = oldNode.y;
+		
+		newNode.caption = oldNode.caption.slice();
+		
+		console.log(newNode);
+		
+		WebStudio.deleteNode(oldNode.id);
+	console.log("newId " + newID);
+	console.log(newNode);
+		d3.select("#" + oldID).data([newNode]).attr("id", newID);
+		d3.select("#" + oldID).data()[0].setOrigin(newNode.origin);
+		d3.select("#" + oldID).data()[0].updatePaths();
+	*/
 	}
 	
 /* node rendering *************************************************************************************/
@@ -184,10 +209,10 @@ var pNodeGeom = (function() {
 	/**************************************************************************************************
 	/* create the group and handles for a node. Specific node type will be set later in the function
 	/* based on the "id" of the DOM element 													      */
-	var createNode = function(pNode, nodeGroup) {
+	var createNode = function(pNode) {
 		this.id = pNode.getID();
 	
-		var node = nodeGroup.append("g")
+		var node = d3.select("#nodes").append("g")
 			.data([pNode])
 			.attr("class", "pNode")
 			.attr("id", this.id)
