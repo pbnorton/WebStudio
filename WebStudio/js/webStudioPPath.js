@@ -1,8 +1,10 @@
-function PPath(id, source, target, type) {
+function PPath(id, source, target, condition) {
 	this.id = id;
-	this.type = type || "";
 	this.source = source;
 	this.target = target;
+	
+	this.condition = condition || "";
+	this.expression = "";
 	
 	this.x1;
 	this.y1;
@@ -14,20 +16,26 @@ function PPath(id, source, target, type) {
 	this.isSelected = false;
 }
 
-PPath.prototype.setSource = function(source) { this.source = source; }
-
-PPath.prototype.getSource = function() { d3.select("#" + source); }
-
-PPath.prototype.setTarget = function(target) { this.target = target; }
-
-PPath.prototype.getTarget = function() { d3.select("#" + target); }
+PPath.prototype.setCondition = function(condition) {
+	this.condition = condition;
+}
 
 PPath.prototype.getCentroid = function() {
 	var path = d3.select("#" + this.id).node()
+
 	var length = path.getTotalLength()
 	var ctr = path.getPointAtLength(length * .5);
 	
 	return ctr; 
+}
+
+PPath.prototype.updateCondition = function(condition) {
+	this.condition = condition;
+	d3.select("#" + this.id)
+		.data([this])
+		.attr("stroke", "black"); 
+		
+	d3.select("#" + this.id + "-label").text(this.condition);
 }
 
 PPath.prototype.updatePath = function() {	
@@ -68,7 +76,7 @@ var pPathGeom = (function() {
 	var line;			
 
 /* Path rendering *****************************************************************************/	
-	var createPath = function(d, whiteboard) {
+	function createPath(d, whiteboard) {
 		WebStudio.isPath = true;
 		
 		startPath(d, whiteboard); 
@@ -78,13 +86,13 @@ var pPathGeom = (function() {
 		var vis = d3.select(whiteboard);
 		var m = d3.mouse(vis.node());
 	
-		//$("#"+this).css("cursor", "default");
-	
+		$("*").css("cursor", "default");
+
 		line = vis.append("line")
 				.data([d])
 				.attr("id", "ghost-line")
-				.attr("x1", function(d) { return d[0] + 50; })
-				.attr("y1", function(d) { return d[1] + 50; })
+				.attr("x1", function(d) { return d.x + 50; })
+				.attr("y1", function(d) { return d.y + 50; })
 				.attr("x2", m[0])
 				.attr("y2", m[1])
 				.attr("stroke", "aqua")
@@ -112,20 +120,23 @@ var pPathGeom = (function() {
 		/* make sure we have a target and that we're not drawing a line from a node to itself */
 		if(pNodeGeom.nodeTarget && (pNodeGeom.nodeSource !== pNodeGeom.nodeTarget))
 			generatePath(pNodeGeom.nodeSource, pNodeGeom.nodeTarget);
+		else { // if there is no target add a new ghost node
+			pNodeGeom.nodeTarget = WebStudio.addNode("ghost", m[0] - 50, m[1] - 50);
+			generatePath(pNodeGeom.nodeSource, pNodeGeom.nodeTarget);
+		}
+
 		
 		pNodeGeom.nodeSource = null;
 		pNodeGeom.nodeTarget = null;
 		
 		d3.selectAll("#ghost-line").remove();
 		
+		$("*").css("cursor", "");
 		d3.select(WebStudio.whiteboard.node()).on("mousemove", null);
 		d3.select(WebStudio.whiteboard.node()).on("mouseup", null);
 	}
 	
-	function generatePath(source, target, type) {
-//console.log(source);
-//console.log(target);
-//console.log(type);	
+	function generatePath(source, target, condition) {	
 		var s = {x: source.x, y: source.y};
 		var t = {x: target.x, y: target.y};
 
@@ -136,7 +147,7 @@ var pPathGeom = (function() {
 		var pathID = "path" + WebStudio.pathCount;
 
 		/* save the path and add its source and target node data to the path data */
-		var pPath = new PPath((pathID + "-path"), source, target, type);
+		var pPath = new PPath((pathID + "-path"), source, target, condition);
 		WebStudio.pathCount++;
 		
 		pPath.x1 = s.x;
@@ -154,9 +165,8 @@ var pPathGeom = (function() {
 		newPath.append("path")
 			.attr("id", pPath.id)
 			.attr("fill", "none")
-			.attr("stroke", function() { return pPath.type.length === 0 ? "red" : "black"; })
+			.attr("stroke", function() { return pPath.condition.length === 0 ? "red" : "black"; })
 			.attr("stroke-width", 1)
-			//.attr("stroke-dasharray", function() { return pPath.type.length === 0 ? "5,5" : null; })
 			.attr("fill", "white")
 			.attr("d", diagonal)
 			.on("click", WebStudio.clickHandler)
@@ -174,7 +184,7 @@ var pPathGeom = (function() {
 			.attr("id", pPath.id + "-label")
 			.attr("x", ctr.x - 20)
 			.attr("y", ctr.y + 20)
-			.text(pathID);
+			.text(function() { return pPath.condition.length !== 0 ? pPath.condition : pathID; });
 			
 		/* add the path to the appropriate node data */
 		d3.select("#" + source.id).data()[0].setTarget(pPath);		

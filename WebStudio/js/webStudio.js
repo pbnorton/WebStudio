@@ -32,7 +32,7 @@ var WebStudio = (function() {
 	//nodes.selectAll(".pNode").data(data.nodes);
 	
 	// deselect a selected node or path
-	var deselect = function(selection) {
+	function deselect(selection) {
 		var selection = selection || d3.selectAll(".selection");
 	
 		if(selection[0].length !== 0) {
@@ -53,7 +53,7 @@ var WebStudio = (function() {
 	};
 	
 	// handle select and deselect events for nodes and paths
-	var clickHandler = function(d) {
+	function clickHandler(d) {
 		if(d3.event.defaultPrevented) 
 			return;
 		
@@ -98,7 +98,7 @@ var WebStudio = (function() {
 			}
 		}
 		else // open the modal
-			modal.open({content: p.data()[0]});
+			modal.open(p.data()[0]);
 	
 		d3.event.stopPropagation();	// stop the parent SVG from registering the click
 	}
@@ -107,9 +107,9 @@ var WebStudio = (function() {
 	
 	// node and path handlers
 	
-	var deleteNode = function(node) {	
+	function deleteNode(node) {	
 		if(node !== "node0" && node !== "node1") {
-			var index = lookup(node, "id", data.nodes);
+			var index = lookup("id", node, data.nodes);
 		
 			while(data.nodes[index].sourcePaths.length > 0) 
 				deletePath(data.nodes[index].sourcePaths[0]);
@@ -125,11 +125,11 @@ var WebStudio = (function() {
 			d3.event.stopPropagation();
 	}
 	
-	var deletePath = function(path) {
+	function deletePath(path) {
 		if(path.id !== "path0") {
-			var index = lookup(path.id, "id", data.paths);		
-			var source = lookup(path.source.id, "id", data.nodes);
-			var target = lookup(path.target.id, "id", data.nodes);
+			var index = lookup("id", path.id, data.paths);		
+			var source = lookup("id", path.source.id, data.nodes);
+			var target = lookup("id", path.target.id, data.nodes);
 		
 			data.nodes[source].removeTarget(path.id);
 			data.nodes[target].removeSource(path.id);
@@ -141,7 +141,7 @@ var WebStudio = (function() {
 			alert("Cannot delete default path");
 	}
 	
-	var addNode = function(type, x, y) {
+	function addNode(type, x, y) {
 		var pNode = new PNode("node" + nodeCount, type, x, y);
 		data.nodes.push(pNode);
 		
@@ -150,19 +150,21 @@ var WebStudio = (function() {
 		nodeCount++;				
 		
 		deselect(); //deselect any selected items, just in case
+		
+		return pNode; // we need this when adding new ghost nodes
 	};
 	
-	var addPath = function(d) {
+	function addPath(d) {
 		pPathGeom.createPath(d, whiteboard);
 	}
 	
 	// create tree root using start arrow, path, ghost node
-	var init = function() {
+	function init() {
 		paths.selectAll(".pPath").data(data.paths);	
 		nodes.selectAll(".pNode").data(data.nodes);
 			
-		addNode("start", 20, 20);
-		addNode("twitter", 120, 120);
+		addNode("start", 50, 50);
+		addNode("twitter", 150, 150);
 		pPathGeom.generatePath(data.nodes[0], data.nodes[1], "goto");
 		
 		d3.json("root.json", function(json) {

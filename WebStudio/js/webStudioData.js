@@ -1,7 +1,7 @@
 var data = {"nodes" : [],
 			"paths" : []}
 			
-function lookup(item, property, array) {
+function lookup(property, item, array) {
 	for(var i = 0; i < array.length; ++i)
 		if(array[i][property] === item)
 			return i;

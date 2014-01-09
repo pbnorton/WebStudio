@@ -4,29 +4,23 @@ function PNode(id, type, x, y) {
 	this.sourcePaths = [];
 	this.targetPaths = [];
 	
-	this.adaptor = function() { return Math.random(); };
-	
 	this.isSelected = false;
 	
-	this.origin = [x, y]; // top left
+	this.origin = { x: x, y: y}; // top left
 	this.width = 100;
 	this.height = 100;
-	this.x = this.origin[0] + (this.width / 2);
-	this.y = this.origin[1] + (this.height / 2);
+	this.x = this.origin.x + (this.width / 2);
+	this.y = this.origin.y + (this.height / 2);
+	
+	this.adaptor = function() { return Math.random(); }; // place holder for testing
 	
 	this.caption = "";
 }
 
-PNode.prototype.getID = function() { return this.id; }
-
-PNode.prototype.setID = function(id) { this.id = id; }
-
-PNode.prototype.getOrigin = function() { return this.origin; }
-
 PNode.prototype.setOrigin = function(o) { 
 	this.origin = o; 
-	this.x = this.origin[0] + (this.width / 2);
-	this.y = this.origin[1] + (this.height / 2);
+	this.x = this.origin.x + (this.width / 2);
+	this.y = this.origin.y + (this.height / 2);
 	
 	d3.select("#node" + this.id).data([this]);
 	d3.select("#node" + this.id + "-handles").data([this.origin]);
@@ -38,7 +32,7 @@ PNode.prototype.setSource = function(path) {
 }
 
 PNode.prototype.removeSource = function(path) {
-	var index = lookup(path, "id", this.sourcePaths);
+	var index = lookup("id", path, this.sourcePaths);
 	this.sourcePaths.splice(index, 1);
 }
 
@@ -47,7 +41,7 @@ PNode.prototype.setTarget = function(path) {
 }
 
 PNode.prototype.removeTarget = function(path) {
-	var index = lookup(path, "id", this.targetPaths);
+	var index = lookup("id", path, this.targetPaths);
 	this.targetPaths.splice(index, 1);
 }
 
@@ -59,9 +53,6 @@ PNode.prototype.updatePaths = function() {
 		this.targetPaths[i].updatePath();
 }
 
-PNode.prototype.modalContent = function() {
-
-}
 
 /*************************************************************************************************/
 
@@ -78,10 +69,10 @@ var pNodeGeom = (function() {
 	var isDragging = false;
 
 /* node event handling ***************************************************************/
-	var updateNodePos = function(pNode) {
-		d3.select("#node" + pNode.getID())
+	function updateNodePos(pNode) {
+		d3.select("#node" + pNode.id)
 			.data([pNode])
-			.attr("transform", function(d) { return "translate(" + d.getOrigin() + ")" });
+			.attr("transform", function(d) { return "translate(" + d.origin + ")" });
 	};
 	
 	var drag = d3.behavior.drag()
@@ -101,13 +92,13 @@ var pNodeGeom = (function() {
 				pNodeGeom.nodeSource = d3.select(this).data()[0];
 			}
 			else {
-				d.origin[0] += d3.event.dx;
-				d.origin[1] += d3.event.dy;
+				d.origin.x += d3.event.dx;
+				d.origin.y += d3.event.dy;
 				node.attr("transform", function(d) {
-					return "translate(" + [d.origin[0], d.origin[1]] + ")";
+					return "translate(" + [d.origin.x, d.origin.y] + ")";
 				});
 				
-				node.data()[0].setOrigin(node.data()[0].getOrigin());
+				node.data()[0].setOrigin(node.data()[0].origin);
 				node.data()[0].updatePaths();
 			}
 		})
@@ -117,16 +108,16 @@ var pNodeGeom = (function() {
 			d3.event.sourceEvent.stopPropagation();
 		});
 			
-	var isNextNode = function(node) {
+	function isNextNode(node) {
 		pNodeGeom.nodeTarget = d3.select(node).data()[0];
 	}
 	
-	var createPath = function(d) {
+	function createPath(d) {
 		WebStudio.addPath(d);
 	}
 	
 	 // check for intersection in order to overwrite nodes or splice into paths
-	var isIntersect = function(d, node) {
+	function isIntersect(d, node) {
 		// check if the mouseup position falls within the bounds of another node
 		for(var i = 0; i < data.nodes.length; ++i) {
 			if(data.nodes[i].id !== node.id) {
@@ -174,7 +165,7 @@ var pNodeGeom = (function() {
 	}
 	
 	// drag and drop a node onto an existing to replace it
-	var replaceNode = function(newNode, oldNode) {
+	function replaceNode(newNode, oldNode) {
 		console.log(newNode.type + " will replace " + oldNode.type);
 	/*
 		var newID = oldNode.id;
@@ -209,14 +200,14 @@ var pNodeGeom = (function() {
 	/**************************************************************************************************
 	/* create the group and handles for a node. Specific node type will be set later in the function
 	/* based on the "id" of the DOM element 													      */
-	var createNode = function(pNode) {
-		this.id = pNode.getID();
+	function createNode(pNode) {
+		this.id = pNode.id;
 	
 		var node = d3.select("#nodes").append("g")
 			.data([pNode])
 			.attr("class", "pNode")
 			.attr("id", this.id)
-			.attr("transform", function(d) { return "translate(" + d.getOrigin()[0] + "," + d.getOrigin()[1] + ")"; } )
+			.attr("transform", function(d) { return "translate(" + d.origin.x + "," + d.origin.y + ")"; } )
 			.on("mousedown", function() { nodeTarget = this.id; })
 			.on("mouseover", function() { 
 					if(WebStudio.isPath === true){isNextNode(this);} 
@@ -253,7 +244,7 @@ var pNodeGeom = (function() {
 		
 	}
 	
-	var startNode = function(node) {
+	function startNode(node) {
 			// start arrow
 			node.append("path")
 				.attr("transform", "scale(.75), translate(20, 20), rotate(45, 50, 50)")
@@ -262,7 +253,7 @@ var pNodeGeom = (function() {
 				.attr("fill", "greenyellow");
 	}
 
-	var ghostNode = function (node) {
+	function ghostNode(node) {
 		node.append("rect")
 			.attr("id", "node" + this.id + "-content")
 			.attr("x", "15")
@@ -276,7 +267,7 @@ var pNodeGeom = (function() {
 			.attr("fill", "white");
 	}
 
-	var twitterNode = function(node) {
+	function twitterNode(node) {
 		node.append("image")
 			.attr("xlink:href", "img/Twitter_logo_blue.png")
 			.attr("x", "15")
@@ -285,7 +276,7 @@ var pNodeGeom = (function() {
 			.attr("height", "70");
 	}
 	
-	var decisionNode = function(node) {
+	function decisionNode(node) {
 		node.append("rect")
 			.attr("x", "15")
 			.attr("y", "15")
@@ -298,7 +289,7 @@ var pNodeGeom = (function() {
 			.attr("fill", "grey");
 	}
 	
-	var endNode = function(node) {
+	function endNode(node) {
 		node.append("circle")
 			.attr("cx", "50")
 			.attr("cy", "50")
